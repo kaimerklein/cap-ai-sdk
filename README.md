@@ -1,94 +1,155 @@
-# Accessing a LLM with SAP Generative AI Hub on BTP from a CAP Application
+# Accessing a Large Language Model (LLM) with SAP Generative AI Hub on BTP from a CAP Application
 
-This example demonstrates a way to use SAP's AI Core SDK in a CAP (Cloud Application Program Model) application to access large language models provided by the generative AI Hub, which is part of SAP's AI Core service on the SAP Business Technology platform.
+This repository demonstrates how to use SAP's AI Core SDK in a CAP (Cloud Application Programming Model) application to access large language models (LLMs) via the SAP Generative AI Hub, which is part of SAP AI Core on the SAP Business Technology Platform (BTP).
 
-## Getting started
+## Getting Started
 
-### Preparation
+### Prerequisites
 
-Install the latest LTS version of Node.js, SQlite (if you are on Windows) and, as recommendation, VSCode. See [here](https://cap.cloud.sap/docs/get-started/) for more details.
+1. **Development Environment**:
 
-Make sure you have the Cloud Foundry Environment activated in your BTP subaccount and a CF space created with 1 GB Memory quota available to it.
+   - Install the latest LTS version of [Node.js](https://nodejs.org/).
+   - Install SQLite (required for Windows users).
+   - Optionally, use [VSCode](https://code.visualstudio.com/) for development.
 
-Install the Cloud Foundry CLI as documented [here](https://docs.cloudfoundry.org/cf-cli/install-go-cli.html), for example on MacOS with
+   Refer to the [CAP documentation](https://cap.cloud.sap/docs/get-started/) for more details.
 
-```bash
-brew install cloudfoundry/tap/cf-cli@8
-```
+2. **SAP BTP Setup**:
 
-Create a service instance of SAP AI Core on BTP Subaccount and deploy a Large Language Model - for the code to be used directly, use OpenAI gpt-4o. For details, see [here](https://help.sap.com/docs/sap-ai-core/sap-ai-core-service-guide/generative-ai-hub-in-sap-ai-core-7db524ee75e74bf8b50c167951fe34a5?locale=en-US). Ideally, use **aicore** as name for the instance - otherwise, adjust the references to it.
+   - Ensure the Cloud Foundry (CF) environment is activated in your SAP BTP subaccount.
+   - Create a Cloud Foundry space with at least 1 GB of memory quota.
 
-### Local Execution of the CAP service, accessing the LLM via BTP
+3. **Tools Installation**:
 
-Clone this repo and run `npm install`
+   - Install the [Cloud Foundry CLI](https://docs.cloudfoundry.org/cf-cli/install-go-cli.html).
+     For macOS, use:
+     ```bash
+     brew install cloudfoundry/tap/cf-cli@8
+     ```
 
-We will use CAP's hybrid testing capability. Log on to Cloud Foundry and bind your AI Core instance:
+4. **SAP AI Core Service**:
+   - Create a service instance of SAP AI Core in your BTP subaccount.
+   - Deploy a large language model such as OpenAI's GPT-4o. Detailed steps are available in the [SAP AI Core Service Guide](https://help.sap.com/docs/sap-ai-core/sap-ai-core-service-guide/generative-ai-hub-in-sap-ai-core-7db524ee75e74bf8b50c167951fe34a5?locale=en-US).
+   - Use `aicore` as the instance name for consistency with this example, or update the references in the code if you choose a different name.
 
-```bash
-cf logon
+---
 
-cds bind aicore --to aicore --kind aicore
-```
+## Running the CAP Service Locally
 
-Now, you can start the CAP Service locally. It will acquire the credentials for the aicore instance from BTP and inject them to the service, thus emulating a service binding in Cloud Foundry. Start the application as follows:
+1. Clone the repository and install dependencies:
 
-```bash
-cds watch --profile hybrid
-```
+   ```bash
+   git clone https://github.com/kaimerklein/cap-ai-sdk.git
+   cd cap-ai-sdk
+   npm install
+   ```
 
-### Deployment to SAP BTP, Cloud Foundry Runtime
+2. Log in to Cloud Foundry and bind your AI Core instance:
 
-In case your AI Core instance has a different name than **aicore**, change the reference to it in `mta.yaml`.
+   ```bash
+   cf login
 
-First, prepare for the deployment of an MTA application as follows:
+   cds bind aicore --to aicore --kind aicore
+   ```
 
-```bash
-npm i -g mbt    # in case you haven't installed the tool already
+3. Start the CAP service locally with hybrid testing enabled. The application will use the credentials from the AI Core instance:
+   ```bash
+   cds watch --profile hybrid
+   ```
 
-cf install-plugin multiapps # in case you haven't yet installed the plugin
-```
+---
 
-Ensure that you are logged on to Cloud Foundry and execute the following CLI commands:
+## Deploying to SAP BTP (Cloud Foundry Runtime)
 
-```bash
-cds build --production
+### Preparing for Deployment
 
-npm update --package-lock-only
+1. If your AI Core instance name differs from `aicore`, update the reference in `mta.yaml`.
 
-mbt build -t gen --mtar mta.tar
+2. Install required tools if not already available:
 
-cf deploy gen/mta.tar
-```
+   ```bash
+   npm install -g mbt
+   cf install-plugin multiapps
+   ```
 
-Now, create a service key for the XSUAA instance, so that you can retrieve an access token for accessing the API exposed by the CAP service:
+3. Build and deploy the MTA application:
 
-```
-cf create-service-key cap-ai-sdk-auth local-test
+   ```bash
+   cds build --production
 
-# get the key and display on console
-cf service-key cap-ai-sdk-auth local-test
-```
+   npm update --package-lock-only
 
-You will need `clientid`, `clientsecret`, and `url` from the key. For example with
+   mbt build -t gen --mtar mta.tar
 
-```bash
-# be careful to mask ! and $ signs in clientid and clientsecret with a backslash \
+   cf deploy gen/mta.tar
+   ```
 
-curl -d grant_type=client_credentials -u <clientid>:<clientsecret> <url>/oauth/token
-```
+### Creating Service Keys for Authentication
 
-Alternatively, use [bruno](https://www.usebruno.com/) or another tool like Postman to make a POST request to the API with OAuth2 Bearer authentication.
+1. Create a service key for the XSUAA instance:
 
-Find the route to your CAP application on BTP and append the path to the API:
+   ```bash
+   cf create-service-key cap-ai-sdk-auth local-test
+   ```
 
-```bash
-cf apps     # will return the route to your app
-```
+2. Retrieve the key details:
 
-Append `/odata/v4/chat/question` to the route. To this endpoint, you can send the POST request with a body like:
+   ```bash
+   cf service-key cap-ai-sdk-auth local-test
+   ```
 
-```json
-{
-  "question": "tell me joke"
-}
-```
+   Note the `clientid`, `clientsecret`, and `url` values from the service key.
+
+3. Generate an access token:
+
+   ```bash
+   # Escape special characters (!, $, etc.) in clientid and clientsecret with a backslash (\)
+   curl -d grant_type=client_credentials -u <clientid>:<clientsecret> <url>/oauth/token
+   ```
+
+   Alternatively, use tools like [Bruno](https://www.usebruno.com/) or Postman to make a POST request with OAuth2 Bearer authentication.
+
+---
+
+## Accessing the CAP Application
+
+1. Find the route to your deployed CAP application:
+
+   ```bash
+   cf apps
+   ```
+
+2. Append the API endpoint path to the route. For example:
+
+   ```
+   <route>/odata/v4/chat/question
+   ```
+
+3. Send a POST request to the endpoint with a JSON body. Example:
+
+   ```json
+   {
+     "question": "tell me a joke"
+   }
+   ```
+
+   Don't forget to provide the access token in the HTTP header, if your tool doesn't add it automatically:
+
+   ```text
+   Authorization: Bearer <access_token>
+   ```
+
+You can use tools like `curl`, Postman, or Bruno to interact with the API.
+
+---
+
+## Notes
+
+- Ensure your SAP BTP environment is properly configured to support the SAP AI Core service.
+- For troubleshooting, consult the SAP AI Core [documentation](https://help.sap.com/docs/sap-ai-core).
+
+---
+
+## License
+
+This repository is licensed under [MIT License](LICENSE).
