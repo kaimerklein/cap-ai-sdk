@@ -1,0 +1,41 @@
+######################################################################################################################
+
+# This file is for local testing with REST client Plugin for VS Code
+# https://marketplace.visualstudio.com/items?itemName=humao.rest-client
+
+# Create a .env file like this:
+
+#   XSUAA_URL=https://<xsuaa-url>
+#   XSUAA_CLIENT_ID=<xsuaa-client-id>
+#   XSUAA_CLIENT_SECRET=<xsuaa-client-secret>
+#   APP_URL=<route-to-cf-application-on-btp>
+
+# Hints: 
+# Log on to CF with: cf logon
+# Create a service key with: cf create-service-key cap-ai-sdk-auth local-test
+# Get the service key with: cf service-key cap-ai-sdk-auth local-test
+# Copy and paste clientid, clientsecret and url into the .env file
+
+# Get the route to the application with: cf app cap-ai-sdk
+
+######################################################################################################################
+
+@server = {{$dotenv APP_URL}}
+
+### Get Token
+# @name getToken
+GET {{$dotenv XSUAA_URL}}/oauth/token?grant_type=client_credentials
+Authorization: Basic {{$dotenv XSUAA_CLIENT_ID}}:{{$dotenv XSUAA_CLIENT_SECRET}}
+
+@token  = {{getToken.response.body.access_token}}
+@auth = Authorization: Bearer {{token}}
+
+### question
+# @name question_POST
+POST {{server}}/odata/v4/chat/question
+Content-Type: application/json
+{{auth}}
+
+{
+  "question": "Who are you?"
+}

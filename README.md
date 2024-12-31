@@ -100,12 +100,9 @@ This repository demonstrates how to use SAP's AI Core SDK in a CAP (Cloud Applic
 
    Note the `clientid`, `clientsecret`, and `url` values from the service key.
 
-3. Generate an access token:
+3. Install the [REST Client plugin for VS Code](https://marketplace.visualstudio.com/items?itemName=humao.rest-client). Copy the file `.env-template` to `.env` and copy and paste clientid, clientsecret, url and the application route into it.
 
-   ```bash
-   # Escape special characters (!, $, etc.) in clientid and clientsecret with a backslash (\)
-   curl -d grant_type=client_credentials -u <clientid>:<clientsecret> <url>/oauth/token
-   ```
+   Use the file `test/http/ChatService-CF.http` in VS Code leveraging the REST Client plugin to retrieve an access token and to execute API requests.
 
    Alternatively, use tools like [Bruno](https://www.usebruno.com/) or Postman to make a POST request with OAuth2 Bearer authentication.
 

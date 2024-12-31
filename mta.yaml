@@ -27,6 +27,15 @@ modules:
     requires:
       - name: aicore
       - name: cap-ai-sdk-auth
+      - name: cap-ai-sdk-db
+
+  - name: cap-ai-sdk-db-deployer
+    type: hdb
+    path: gen/db
+    parameters:
+      buildpack: nodejs_buildpack
+    requires:
+      - name: cap-ai-sdk-db
 
 resources:
   - name: cap-ai-sdk-auth
@@ -42,3 +51,8 @@ resources:
     parameters:
       service-name: aicore
     type: org.cloudfoundry.existing-service
+  - name: cap-ai-sdk-db
+    type: com.sap.xs.hdi-container
+    parameters:
+      service: hana
+      service-plan: hdi-shared

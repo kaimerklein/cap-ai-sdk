@@ -1,0 +1,12 @@
+@server = http://localhost:4004
+@auth = Authorization: Basic alice:
+
+### question
+# @name question_POST
+POST {{server}}/odata/v4/chat/question
+Content-Type: application/json
+{{auth}}
+
+{
+  "question": "Who are you?"
+}
