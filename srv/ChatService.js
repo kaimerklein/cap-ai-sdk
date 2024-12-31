@@ -1,5 +1,7 @@
 const cds = require("@sap/cds");
 
+const LOG = cds.log("ChatService", { label: "ChatService" });
+
 let chatFunc = null;
 
 import("./ai-core.mjs").then(({ chat }) => {
@@ -19,7 +21,7 @@ module.exports = class ChatService extends cds.ApplicationService {
     // const responseContent =
     //   "I am a bot. I am here to help you with your questions. Please ask me anything.";
 
-    console.log(responseContent);
+    LOG.log(responseContent);
 
     return { answer: responseContent };
   }
