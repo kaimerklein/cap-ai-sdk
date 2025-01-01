@@ -2,6 +2,8 @@
 
 This repository demonstrates how to use SAP's AI Core SDK in a CAP (Cloud Application Programming Model) application to access large language models (LLMs) via the SAP Generative AI Hub, which is part of SAP AI Core on the SAP Business Technology Platform (BTP).
 
+Find a full video explaining the example on [YouTube](https://youtu.be/isKxhxKOjDQ)
+
 ## Getting Started
 
 ### Prerequisites
